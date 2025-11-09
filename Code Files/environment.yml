@@ -1,0 +1,44 @@
+# this environment is not enough to completely recreate evything.
+# after creation/update the r package "onlineforecast" need to be install through r
+# this package is not on conda
+#
+# the environment variable MATPLOTLIBRC, and MPLCONFIGDIR need to be set to the Settings/matplotlib folder
+# Use commands (replace PATH with The path):
+#   "conda env config vars set MATPLOTLIBRC=PATH"
+#   "conda env config vars set MPLCONFIGDIR=PATH" 
+
+name: Thesis
+channels:
+ - conda-forge
+dependencies:
+ - python
+ - numpy
+ - spyder
+ - pandas
+ - scipy
+ - matplotlib
+ - statsmodels
+ - scienceplots
+ - seaborn
+ - properscoring
+ - spyder
+ - tqdm
+ - pytorch
+ - pydot
+ - keras
+ - scikit-learn
+ - r
+ - r-quantreg
+ - r-readr
+ - catboost>=1.2.8
+ - u8darts-all
+ - miktex
+ - pip
+ - pip:
+   - -e CODE/nabqra
+   - -e CODE/nabqr
+
+variables:
+  MATPLOTLIBRC: PLEASE_SET_ME_TO_THE_SETTINGS_FOLDER
+  MPLCONFIGDIR: PLEASE_SET_ME_TO_THE_SETTINGS_FOLDER
+  KERAS_BACKEND: torch

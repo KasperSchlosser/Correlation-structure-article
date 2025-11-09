@@ -1,0 +1,4 @@
+% The data should not be made public
+Data/**
+% No Compiled files
+**/*pyc
