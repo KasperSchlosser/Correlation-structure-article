@@ -4,17 +4,20 @@
 % If your article is accepted for publication, you will be asked for the source files.
 % Please use \citet and \citep for citations.
 
+% guidelines for journal
+%https://www.sciencedirect.com/journal/international-journal-of-forecasting/publish/guide-for-authors
+
 \documentclass[11pt,3p,review,authoryear]{elsarticle}
 
 \journal{International Journal of Forecasting}
 \bibliographystyle{model5-names}
 \biboptions{longnamesfirst}
-
+\input{Latex Files/Preample}
 \begin{document}
 
 \begin{frontmatter}
 
-\title{Title of paper goes here}
+\title{Modelling Autocorrelation with pseudo-residuals}
 
 %% AUTHORS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Leave this section commented out so that the paper is blinded for review.
@@ -28,10 +31,9 @@
 
 \address[dtu]{Technical University of Denmark}
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
+\begin{abstract}
+This is the abstract. Keep it brief and avoid mathematical notation and citations.
+\end{abstract}
 
 \begin{keyword}
 ARIMA models \sep
@@ -44,7 +46,10 @@ Weather forecasting \sep
 % Suggested keywords are listed at https://ijf.forecasters.org/keywords/
 \end{keyword}
 
+\FloatBarrier
+
 \end{frontmatter}
+
 
 \input{Latex Files/Introduction}
 \input{Latex Files/Material and Methods}
@@ -52,7 +57,6 @@ Weather forecasting \sep
 \input{Latex Files/Results}
 \input{Latex Files/Discussion}
 \input{Latex Files/Conclusion}
-
 
 \section*{Acknowledgements}
 
