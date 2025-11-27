@@ -1,0 +1,170 @@
+\section{Case Study}
+
+The main motivation of the paper was in improving the forecast of wind power production, as in \citet{jorgensenSequentialMethodsError2025}, and for this case study we use the same data.
+
+\subsection{Data}
+
+The data consists of observed wind-power production, and an ensemble of forecasted production, for the two danish energy bid zones, DK1 and DK2, further split into off-shore and on-shore production.
+
+Each zone is has different production capacity and interconnection, DK1 is interconnected with mainland Europe, while DK2 is connected to the Nordic countries. The production in each zone exhibit different behaviors, but seem to have a correlation.
+
+DK1 onshore has by far the largest capacity, roughly equal to the other zone combined.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{Results/Graphs/Comparison small.pdf}
+    \caption{Caption}
+    \label{caseproduction}
+\end{figure}
+
+\subsubsection{Observed power Production}
+\label{case-data-observed}
+
+The observed Data was recorded during the period 2022-01-01 00:00:00 to 2024-10-12 23:00:00.
+Data is provided by \href{https://www.energidataservice.dk/}{\color{blue} an open data service provided by the Danish TSO, Energi Net \citet{energinetEnergiDataService}}.
+
+Data was recorded in at a 5 minute frequency, aggregated to hourly frequency by the data provider. Due to the method of aggregation the reported hourly production is occasionally negative, which is not valid.
+
+A summary of the data can be seen in \cref{tab:data:observation}
+
+\input{Results/Tables/Data_table}
+
+
+
+\subsubsection{Ensemble forecast}
+The ensemble forecast are physically derived based on the weather-forecast made by the ECMWF. The ensembles are also given at hourly frequency, with forecast being made over an entire day, 12 hours before the day.
+
+In total there is 51 ensembles, 1 "high probability ensemble" and 50 alternative scenarios made by pertubing the initial conditions of the HPE. 
+
+As these ensembles comes from a propritary process the full data cannot be given. But an example can be seen in \cref{casedata}
+
+For DK2-onshore the are some problems with the ensemble predictions, where the collapse to a value $\sim315 KWh$, this is an artifact of the calculations, but undesirable.
+
+\begin{table}[]
+\centering
+\caption{Summary table for the observed production data. Problematic values are values $0 \leq x < 0.01$}
+\begin{tabular}{lcccccc}
+\toprule
+ & Count & Minimum & Maximum & Negative & Problematic & NaN \\
+\midrule
+DK1-offshore & - & - & - & - & - & - \\
+DK1-onshore & - & - & - & -& - & - \\
+DK2-offshore & - & -& - & - & - & - \\
+DK2-onshore & - & - & - & - & -& - \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{Results/Graphs/DK1-offshore small.pdf}
+    \caption{Caption}
+    \label{casedata}
+\end{figure}
+
+\subsection{Data Cleaning \& Normalization}
+
+A small amount on data cleaning Was necessary.
+Negative oberserved production, as described in \cref{case-data-observed} were set to 0.
+
+In addition the data-time format differed slightly between observation and ensembles, this was amended by translating both into ISO time.
+
+To to help facilitate the learning-process of the neural-nets the data was normalised. 
+Normalisation was done independently for each zone
+The ensemble data was normalised to the range $[-1;1]$:
+
+\begin{equation}
+    X_t = 2 \frac{x_t - \min_i x_i }{\max_i x_i - \min_i x_i} - 1
+\end{equation}
+
+The observed data was normalised to the range $[0,1]$ by simply dividing with a zone-specific constant
+
+\begin{equation}
+    Y_{zone,t} = \frac{y_{zone,t}}{c_{zone}}  
+\end{equation}
+
+with the constants being:
+$c_{DK1-offshore} = 1250$, $c_{DK1-onshore} = 3600$, $c_{DK2-offshore} = 100$, $c_{DK2-onshore} = 650$
+
+\subsection{Data Split}
+
+For evaluting the model a simple train-test split was used. Data Was split roughly 64\%-36\% giving one year of test data..
+
+The train data consisted of 15603 Data points (650.12 Days) in the period 2022-01-01 00:00:00 to 2023-10-13 04:00:00.
+Test data consisted of 8778 Data points (365.75 Days) in the period 2023-10-13 05:00:00 to 2024-10-12 23:00:00.
+
+\subsection{Procedure}
+Each zone was modelled independently, seperate marginal- and correlation were fitted for each zone.
+
+The marginal model were only trained on the train-data set, likewise the correlation models were estimated only on train data.
+
+The model orders for the SARIMA model were selected according to the BIC. all possible models $SARIMA((p,i,q),(P,I,Q,24)), \quad p,P,q,Q \in [0,1,2,3], i,I \in [0,1]$ were considered.
+
+To mimic real-world condition, where data are 12 hours before a given day, predictions are made in horizon of 24 hours using information up to 12 hours before a given day
+
+\begin{equation}
+    \hat{Y}_t = \begin{bmatrix}
+        \hat{y}_{t} \\
+        \hat{y}_{t+1} \\
+        \dots \\
+        \hat{y}_{t+k}
+    \end{bmatrix}
+    = Pipeline(\mathcal{F}_{t-12})
+\end{equation}
+
+In addition we make also perform a prediction without using observational data in practice done by simulating a long $(k = 10000)$ horizon and taking the last 24 hours as the prediction
+\begin{equation}
+    \hat{Y}_{t,\ informationless} = \begin{bmatrix}
+        \hat{y}_{t} \\
+        \hat{y}_{t+1} \\
+        \dots \\
+        \hat{y}_{t+k}
+    \end{bmatrix}
+    = Pipeline(\mathcal{F}_{t-10000})
+\end{equation}
+\subsection{Results}
+
+The loss curves for the marginal models can be seen in \cref{loss}, we see the simple model performs adequately, except in DK2-offshore, probably due to collapsing ensembles.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{Results/Graphs/Loss.pdf}
+    \caption{should maybe be a graph?}
+    \label{loss}
+\end{figure}
+
+The selected SARIMA model can be seen in \cref{tab:autocorrelation:parameters}
+
+\begin{table}[htb]
+\centering
+\caption[Estimated Parameters]{Estimated parameters for the SARMA model. }
+\label{tab:autocorrelation:parameters}
+\begin{tabular}{lccccc}
+\toprule
+ &  & DK1-offshore & DK1-onshore & DK2-offshore & DK2-onshore \\
+\midrule
+$\sigma^2$ &  & $0.307 \pm 0.002$ & $0.122 \pm 0.001$ & $0.295 \pm 0.002$ & $0.17 \pm 0.001$ \\
+\cline{1-6}
+\multirow[c]{3}{*}{$\phi_i$} & 1 & $1.722 \pm 0.017$ & $1.203 \pm 0.007$ & $0.998 \pm 0.061$ & $0.838 \pm 0.005$ \\
+ & 2 & $-0.731 \pm 0.015$ & $-0.377 \pm 0.01$ & $0.642 \pm 0.11$ & - \\
+ & 3 & - & $0.055 \pm 0.007$ & $-0.642 \pm 0.05$ & - \\
+\cline{1-6}
+\multirow[c]{3}{*}{$\theta_i$} & 1 & $-0.734 \pm 0.018$ & - & $0.046 \pm 0.06$ & $0.256 \pm 0.006$ \\
+ & 2 & $-0.188 \pm 0.007$ & - & $-0.816 \pm 0.05$ & - \\
+ & 3 & - & - & $-0.205 \pm 0.012$ & - \\
+\cline{1-6}
+\multirow[c]{2}{*}{$\Phi_{24, i}$} & 1 & $1.006 \pm 0.007$ & $0.984 \pm 0.003$ & - & $0.995 \pm 0.001$ \\
+ & 2 & $-0.006 \pm 0.007$ & - & - & - \\
+\cline{1-6}
+\multirow[c]{2}{*}{$\Theta_{24,i}$} & 1 & $-0.997 \pm 0.002$ & $-0.914 \pm 0.007$ & - & $-0.978 \pm 0.003$ \\
+ & 2 & - & $-0.031 \pm 0.007$ & - & - \\
+\cline{1-6}
+\bottomrule
+\end{tabular}
+\end{table}
+
+Finaly the resulting scores can be seen in \cref{tab:autocorrelation:scores}
+
+
+\input{Results/Tables/results}

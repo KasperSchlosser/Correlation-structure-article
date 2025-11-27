@@ -1,0 +1,253 @@
+\section{Methods}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{Results/Other/pipeline.pdf}
+    \caption{Caption}
+    \label{fig:pipeline}
+\end{figure}
+
+\subsection{Pipeline Overview}
+
+The main idea of the method is to model the correlation structure of a complex process through a combination of simpler methods, as illustrated in \cref{fig:pipeline}.
+
+The method will produce
+
+1. Predict marginal quantiles from input.
+
+We here use a neural-network trained to predict the $5\%, 10\%, \dots, 95\%$ quantiles
+\begin{equation}
+    Q_{t} =
+    \begin{bmatrix}
+        q_1\\
+        q_2\\
+        \vdots\\
+        q_k
+    \end{bmatrix}
+    = f_{marginal(X_t)}
+    
+\end{equation}
+
+2. Interpolated full marginal distribution given estimated quantiles
+
+As a simplifying asssumption the distribution is assumed to be bounded, and the user needs to supply the maximum and minimum value. 
+
+Here we use 3. order monotone spline interpolation, 
+
+\begin{equation}
+    \hat{F}_{Q_{t}}(x) = PCHIP(x|Q_{marginal})
+\end{equation}
+
+3. Transform previous observations into pseudo-residual space
+
+If available and needed for predictions
+
+\begin{gather}
+    u_t = F_{Q_{t}}(y_t) \\
+    z_t = \Phi^{-1}(u_t)
+\end{gather}
+
+4. Make prediction using correlation model
+
+We here chose to use a (S)ARIMA model.
+Predictions can be made with or without previous observations.
+As the link to the original space can be highly non-linear, it can be necessary to simulate. 
+
+\begin{equation}
+    \hat{Z}_{t,k} = 
+    \begin{bmatrix}
+        \hat{z}_{t+1}\\
+        \hat{z}_{t+2}\\
+        \vdots\\
+        \hat{z}_{t+k}
+    \end{bmatrix}
+    = H(z_t)
+\end{equation}
+
+5. Transform predictions back into original Space
+
+\begin{gather}
+    z_t = \Phi(u_t) \\
+    u_t = F^{-1}_{Q_{t}}(y_t) \\
+\end{gather}
+
+In original space the predictions can then be used.
+
+Models are trained and estimated seperately, e.g. we first train the marginal model, use this model to transform observations, then train correlation model on transformed observations.
+
+\subsection{Marginal Model - Neural-Networks}
+
+For estimating the marginal quantiles we continue the work done by \citet{jorgensenSequentialMethodsError2025} and use a neural-network. Neural-networks are chosen as they provide a very flexible and generalisable framework for estimation.
+
+As neural-networks and deep-learning have been a very popular and active research area in recent years, a detailed explanation would be superfluous. For a thorough explanation refer to the paper by \citet{schmidhuber2015a}. 
+
+A (fully connected feed-forward) neural-network consists of a set $\{L_i\}_{i=1}^n$ of Layers $L_i = (W_i,\ b_i, \ h_i)$ Where $W_i, b_i$ are tensors of respectively weights and biases and $h_i$ is an activation function.
+
+Data is sequential passed through each layer, the output the previous layer used as input for the next.
+
+\begin{equation}
+    \hat{x} = h_i(W_i x + b_i)
+\end{equation}
+
+With the final output
+\begin{equation}
+    f_{nn}(x) = h_n(W_n h_{n-1}(\dots (h_1(W_1 X + b_i)\dots) + b_{n-1}) + b_n)
+\end{equation}
+
+\subsubsection{Activation functions}
+We make use of two different activation functions, as well as the identity function $h(x) = x$
+
+Rectified Linear Unit:
+\[
+    relu(x) = x^+ = \begin{cases} x & x \geq 0 \\ 0 & x < 0\end{cases}
+\]
+
+Scaled Exponential Linear Unit
+\[
+    selu(x) = \lambda
+    \begin{cases}
+        x & x > 0 \\
+        \alpha (e^x - 1) & x \leq 0
+    \end{cases}
+\]
+
+With $\lambda = 1.67$ and  $\alpha = 1.05$
+
+\subsubsection{LSTM}
+
+As a final note we also make use of Long Short Term Memory (LSTM) layers. This is a type of recurrent layers where a state is and updated through successive inputs. For details see \citet{staudemeyerUnderstandingLSTMTutorial2019}.
+
+
+\subsubsection{Implementation}
+
+In this paper we compare three different architectures:
+
+\begin{enumerate}
+    \item Simple - Quantile regression on linear one-dimensional basis
+    \item NABQR - Orginal NABQR architecture by \citet{jorgensenSequentialMethodsError2025}
+    \item Latent - New Architecture using a reduced latent representation.
+\end{enumerate}
+
+All models having output of size 19 corresponding to the the quantiles $5\%, 10\%, \dots, 90\%, 95\%$. Note: The original NABQR paper used an output of size 20, The change should be inconsequential.
+
+
+Details for the model architectures can be seen in \cref{tab:architecture}. Models were trained by minimizing the quantile loss, using the Adam optimizer with default hyper parameters.
+To reduce training time an early stopping criteria was used. If the validation loss hadn't improved for 20 epochs, the training was stopped. 
+Models were implemented and trained using Keras with Torch as back-end.
+
+\begin{table}[]
+\centering
+\caption{}
+\label{tab:architecture}
+\begin{tabular}{@{}ccccccc@{}}
+\toprule
+                            & \multicolumn{2}{c}{Simple}      & \multicolumn{2}{c}{NABQR}       & \multicolumn{2}{c}{Latent} \\
+\multicolumn{1}{l}{} &
+  \multicolumn{1}{l}{Activation} &
+  \multicolumn{1}{l}{Shape} &
+  \multicolumn{1}{l}{Activation} &
+  \multicolumn{1}{l}{Shape} &
+  \multicolumn{1}{l}{Activation} &
+  \multicolumn{1}{l}{Shape} \\ \midrule
+\multicolumn{1}{c|}{Input}  & \multicolumn{2}{c|}{52}         & \multicolumn{2}{c|}{7, 52}      & \multicolumn{2}{c}{48,52}  \\ \midrule
+\multicolumn{1}{c|}{1}      & Identity & \multicolumn{1}{c|}{1} & LSTM & \multicolumn{1}{c|}{256} & SELU        & 48, 5        \\
+\multicolumn{1}{c|}{2}      & -      & \multicolumn{1}{c|}{-} & ReLU & \multicolumn{1}{c|}{20}  & SELU        & 48, 5        \\
+\multicolumn{1}{c|}{3}      & -      & \multicolumn{1}{c|}{-} & ReLU & \multicolumn{1}{c|}{20}  & LSTM        & 5            \\
+\multicolumn{1}{c|}{4}      & -      & \multicolumn{1}{c|}{-} & -    & \multicolumn{1}{c|}{-}   & SELU        & 5            \\
+\multicolumn{1}{c|}{5}      & -      & \multicolumn{1}{c|}{-} & -    & \multicolumn{1}{c|}{-}   & SELU        & 5            \\ \midrule
+\multicolumn{1}{c|}{Output} & \multicolumn{2}{c|}{Identity}     & \multicolumn{2}{c|}{ReLU}       & \multicolumn{2}{c}{Identity} \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Distribution Function - Interpolation}
+
+After estimating the marginal quantiles, a full distribution function needs to be constructed matching the point estimates.
+to simplify the process it was assumed that the distributions of interest were bounded with a known maximum and minimum value. that is we assume the quantiles $F(0), F(1)$ are known.
+
+
+Several methods were explored, but we settled on Monotone cubic spline interpolation, as described by \cref{fritschMethodConstructingLocal1984}. here we use the implementation in scipy.
+
+given a set of quantiles $q_1< q_2< \dots< q_k$ and corresponding values $x_1 \leq x_2 \leq\dots \leq x_n$ let $h_i = x_{i+1} - x_i$ and $d_i = \frac{q_{i+1} - q_i}{h_i}$.
+
+The slopes $s_i$ at the interpolation points are found as 
+\begin{equation}
+    s_i = 3\frac{h_i+h_{i-1}}{\frac{2h_i + h_{i-1}}{d_{i-1}} +\frac{h_i + 2h_{i-1}}{d_{i}} }
+ \end{equation}
+
+ And the interpolated function is defined by the basis functions
+
+\begin{align}
+b_{1}(t) = (1+2t)(1-t)^2 \\
+b_{2}(t) = t(1-t)^2 \\
+b_{3}(t) = t^2(3-2t) \\
+b_{4}(t) = t^2(t-1)
+\end{align}
+
+with the final function defined as
+
+$\hat{F}(x) =  x_k b_1\left(\frac{x-x_i}{h_i}\right) + s_i b_2\left(\frac{x-x_i}{h_i}\right)h_i  + x_{i+1}b_3\left(\frac{x-x_i}{h_i}\right) + s_{i+1}b_4\left(\frac{x-x_i}{b_i}\right)h_i$
+
+
+\subsection{Correlation model - SARIMA}
+
+ARIMA models are linear stoachastic models where the next observation is model as the weighted sum of the previous observations (Auto-regressive-part) and previous residuals (Moving average part). 
+\begin{equation}
+    y_t = \phi_1 y_{t-1} + \phi_2y_{t-2} + \dots + \epsilon_t + \theta_1\epsilon_{t-2} + \theta_2 \epsilon_{t-2} + \dots
+\end{equation}
+
+This is also commonly formulated in terms of a lag operator
+\begin{equation}
+    B^k y_t = y_{t-k} \\
+\end{equation}
+
+\begin{equation}
+    \phi(B)\Phi(B^s)\nabla^d\nabla^D_s y_t = \theta(B)\Theta(B^s) \epsilon_t
+\end{equation}
+
+FOr actual implementation we use the SARIMAX function in the statsmodels package.
+
+
+\subsection{Scores}
+
+For evaluating the performance of the proposed method four different scores are used: Root Mean Squared Error, Mean Absolute Error, Continuous Ranked Probability Score, and Variogram Score.
+
+\begin{align}
+    RMSE &= \sqrt{\frac{1}{n}\sum_{i=1}^{N} (y_i - \hat{y}_i)^2} \\
+    MAE &= \frac{1}{n}\sum_{i=1}^{N} |y_i - \hat{y}_i| \\
+    CRPS &= \int_{-\infty}^\infty (F(u) - \mathbb{I}_{y<u})^2 = \mathbb{E}{|x_t-y|} - \frac{1}{2} \mathbb{E}{|x_i-x_j|} \\
+    VarS_p &= \sum_{i=1}^k \sum_{j = i+1}^k w_{i,j}(|y_i-y_j|^p - \mathbb{E}{|X_{t_i} - X_{t_j}|^p}
+\end{align}
+
+All four scores are commonly used in evaluating forecast methods with different strength and weaknesses. For Detail explanations of the individual scores see \citet{bjerreg2021a} and for scoring rules in general \citet{gneiting2007a}
+
+For VarS we use equal weighting $w_{i,j} = \frac{1}{k(k-1)}$. Another common choice is using the inverse distance $w_{i,j} = \frac{1}{|i-j|}$
+
+\subsubsection{Evaluating scores}
+
+While both the RMSE and MAE are simple and easy calculate, Both CRPS and VarS reuires the calculation of an expectation. As the method here is both very non-linear, and numerically driven this is analytically intractable.
+We instead have to rely on simulation.
+
+To calculate CRPS and VarS $n = 300$ simulations with time horizon $k = 24$ are made from the correlation model and transformed back into original space. let $\hat{Y}_{t,i} = \begin{bmatrix} \hat{y}_{t,i}, \hat{y}_{t+1,i} , \dots, \hat{y}_{t+k} \end{bmatrix}$ be the values for simulation i
+
+\begin{align}
+    \mathbb{E}{|x_i-y|} &\approx \frac{1}{n}\sum_{i=1}^n \hat{y}_{t,i} - y\\
+    \mathbb{E}{|x_i-x_j|} &\approx \frac{1}{n(n-1)}\sum_{i=1}^n \sum_{j = i+1}^n \hat{y}_{t,i} -\hat{y}_{t,j} \\
+    \mathbb{E}\left({|X_{t_i} - X_{t_j}|^p}\right) &\approx \frac{1}{n}\sum_{z=1}^n\left|\hat{y}_{t_i,z} -\hat{y}_{t_j,z}\right|^p \\
+\end{align}
+
+\subsubsection{Quantile score}
+In addition to the four scores we also use the quantile scores as a loss function for training the neural-networks.
+
+\begin{equation}
+    QS_\alpha(y,x) = \begin{cases}
+        \alpha(y-x) & y \geq x \\
+        (1-\alpha)(x-y) & y<x 
+    \end{cases}  
+\end{equation}
+
+For $\alpha = 0.5$ the scores is equivalent to the MAE. While the CRPS is the average QS across all alpha
+\[
+    CRPS = \int_0^1 QS_\alpha(y,x_\alpha) d\alpha 
+\]
+
+
