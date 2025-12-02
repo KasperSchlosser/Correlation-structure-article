@@ -2,3 +2,7 @@
 Data/**
 % No Compiled files
 **/*pyc
+% no auxillary files
+aux_files/*
+%ignore the resulting pdf
+main.pdf
