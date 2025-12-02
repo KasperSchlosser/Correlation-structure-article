@@ -7,73 +7,25 @@
     \label{fig:pipeline}
 \end{figure}
 
-\subsection{Pipeline Overview}
-
 The main idea of the method is to model the correlation structure of a complex process through a combination of simpler methods, as illustrated in \cref{fig:pipeline}.
 
-The method will produce
+The method takes a set of inputs $\{x_i\}_{i=0}^{t+k}$, and observations $\{y_i\}_{i=0}^{t}$, where $k$ is the forecast horizon. The output of the method is a forecast, either point forecasts or simulations, with appropiate correlation structure.
 
-1. Predict marginal quantiles from input.
+The method proceeds in 5 steps:
 
-We here use a neural-network trained to predict the $5\%, 10\%, \dots, 95\%$ quantiles
-\begin{equation}
-    Q_{t} =
-    \begin{bmatrix}
-        q_1\\
-        q_2\\
-        \vdots\\
-        q_k
-    \end{bmatrix}
-    = f_{marginal(X_t)}
-    
-\end{equation}
+\begin{enumerate}
+    \item Estimate marginal quantiles at each time point
+        $Q_t = f_Q(X_t) = \begin{bmatrix}f_{q_1}(X_t), f_{q_2}(X_t), \dots, f_{q_m}(X_t)\end{bmatrix}^T$
+    \item Interpolate full distribution from marginal quantiles
+        $\hat F_t(x) = pchip(x|Q_t)$
+    \item Transform observations into pseudo-residual space 
+        $z_t = \Phi^{-1}(\hat F_t(y_t)))$
+    \item Make predictions/simulate in pseudo-residual space
+        $\hat{z}_{t+k} = H(z_t)$ 
+    \item Transform back into Original space
+        $\hat y_{t+k} = \hat{F}_{t+k}^{-1}(\Phi(\hat{z}_{t + k}))$
+\end{enumerate}
 
-2. Interpolated full marginal distribution given estimated quantiles
-
-As a simplifying asssumption the distribution is assumed to be bounded, and the user needs to supply the maximum and minimum value. 
-
-Here we use 3. order monotone spline interpolation, 
-
-\begin{equation}
-    \hat{F}_{Q_{t}}(x) = PCHIP(x|Q_{marginal})
-\end{equation}
-
-3. Transform previous observations into pseudo-residual space
-
-If available and needed for predictions
-
-\begin{gather}
-    u_t = F_{Q_{t}}(y_t) \\
-    z_t = \Phi^{-1}(u_t)
-\end{gather}
-
-4. Make prediction using correlation model
-
-We here chose to use a (S)ARIMA model.
-Predictions can be made with or without previous observations.
-As the link to the original space can be highly non-linear, it can be necessary to simulate. 
-
-\begin{equation}
-    \hat{Z}_{t,k} = 
-    \begin{bmatrix}
-        \hat{z}_{t+1}\\
-        \hat{z}_{t+2}\\
-        \vdots\\
-        \hat{z}_{t+k}
-    \end{bmatrix}
-    = H(z_t)
-\end{equation}
-
-5. Transform predictions back into original Space
-
-\begin{gather}
-    z_t = \Phi(u_t) \\
-    u_t = F^{-1}_{Q_{t}}(y_t) \\
-\end{gather}
-
-In original space the predictions can then be used.
-
-Models are trained and estimated seperately, e.g. we first train the marginal model, use this model to transform observations, then train correlation model on transformed observations.
 
 \subsection{Marginal Model - Neural-Networks}
 
@@ -81,42 +33,9 @@ For estimating the marginal quantiles we continue the work done by \citet{jorgen
 
 As neural-networks and deep-learning have been a very popular and active research area in recent years, a detailed explanation would be superfluous. For a thorough explanation refer to the paper by \citet{schmidhuber2015a}. 
 
-A (fully connected feed-forward) neural-network consists of a set $\{L_i\}_{i=1}^n$ of Layers $L_i = (W_i,\ b_i, \ h_i)$ Where $W_i, b_i$ are tensors of respectively weights and biases and $h_i$ is an activation function.
+For activations functions three different are used in this project, ReLU $relu(x) = x^+ = \begin{cases} x & x \geq 0 \\ 0 & x < 0\end{cases}$, SELU $selu(x) = \lambda \begin{cases} x & x > 0 \\ \alpha (e^x - 1) & x \leq 0 \end{cases}$, and the identity function $f(x) = x$.
 
-Data is sequential passed through each layer, the output the previous layer used as input for the next.
-
-\begin{equation}
-    \hat{x} = h_i(W_i x + b_i)
-\end{equation}
-
-With the final output
-\begin{equation}
-    f_{nn}(x) = h_n(W_n h_{n-1}(\dots (h_1(W_1 X + b_i)\dots) + b_{n-1}) + b_n)
-\end{equation}
-
-\subsubsection{Activation functions}
-We make use of two different activation functions, as well as the identity function $h(x) = x$
-
-Rectified Linear Unit:
-\[
-    relu(x) = x^+ = \begin{cases} x & x \geq 0 \\ 0 & x < 0\end{cases}
-\]
-
-Scaled Exponential Linear Unit
-\[
-    selu(x) = \lambda
-    \begin{cases}
-        x & x > 0 \\
-        \alpha (e^x - 1) & x \leq 0
-    \end{cases}
-\]
-
-With $\lambda = 1.67$ and  $\alpha = 1.05$
-
-\subsubsection{LSTM}
-
-As a final note we also make use of Long Short Term Memory (LSTM) layers. This is a type of recurrent layers where a state is and updated through successive inputs. For details see \citet{staudemeyerUnderstandingLSTMTutorial2019}.
-
+Finally a Long short term memory (LSTM) layers are used in some models. As these layer construction are somewhat more complicated we refer to \citet{staudemeyerUnderstandingLSTMTutorial2019} for a detailed explanation.
 
 \subsubsection{Implementation}
 
@@ -149,13 +68,13 @@ Models were implemented and trained using Keras with Torch as back-end.
   \multicolumn{1}{l}{Shape} &
   \multicolumn{1}{l}{Activation} &
   \multicolumn{1}{l}{Shape} \\ \midrule
-\multicolumn{1}{c|}{Input}  & \multicolumn{2}{c|}{52}         & \multicolumn{2}{c|}{7, 52}      & \multicolumn{2}{c}{48,52}  \\ \midrule
+\multicolumn{1}{c|}{Input shape}  & \multicolumn{2}{c|}{52}         & \multicolumn{2}{c|}{7, 52}      & \multicolumn{2}{c}{48,52}  \\ \midrule
 \multicolumn{1}{c|}{1}      & Identity & \multicolumn{1}{c|}{1} & LSTM & \multicolumn{1}{c|}{256} & SELU        & 48, 5        \\
 \multicolumn{1}{c|}{2}      & -      & \multicolumn{1}{c|}{-} & ReLU & \multicolumn{1}{c|}{20}  & SELU        & 48, 5        \\
 \multicolumn{1}{c|}{3}      & -      & \multicolumn{1}{c|}{-} & ReLU & \multicolumn{1}{c|}{20}  & LSTM        & 5            \\
 \multicolumn{1}{c|}{4}      & -      & \multicolumn{1}{c|}{-} & -    & \multicolumn{1}{c|}{-}   & SELU        & 5            \\
 \multicolumn{1}{c|}{5}      & -      & \multicolumn{1}{c|}{-} & -    & \multicolumn{1}{c|}{-}   & SELU        & 5            \\ \midrule
-\multicolumn{1}{c|}{Output} & \multicolumn{2}{c|}{Identity}     & \multicolumn{2}{c|}{ReLU}       & \multicolumn{2}{c}{Identity} \\ \bottomrule
+\multicolumn{1}{c|}{Output activation} & \multicolumn{2}{c|}{Identity}     & \multicolumn{2}{c|}{ReLU}       & \multicolumn{2}{c}{Identity} \\ \bottomrule
 \end{tabular}
 \end{table}
 
