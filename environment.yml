@@ -1,0 +1,18 @@
+name: pseudocorr
+channels:
+ - conda-forge
+dependencies:
+ - python
+ - numpy
+ - pandas
+ - scipy
+ - scoringrules
+ - statsmodels
+ - pytorch
+ - keras
+# nice to have
+ - spyder
+ - miktex
+
+variables:
+  KERAS_BACKEND: torch
