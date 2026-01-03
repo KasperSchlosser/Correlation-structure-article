@@ -298,7 +298,7 @@ if TRAINNN:
             history.loc[zone, name, hist.epoch] = np.array(
                 list(hist.history.values())
             ).T
-    history.to_pickle(PATH / "Data" / f"modeltraining.pkl")
+    history.to_pickle(PATH / "Data" / "modeltraining.pkl")
 else:
     for file in (PATH / "Models" / "nn").glob("*keras"):
         zone, name = file.stem.split("_")
@@ -316,7 +316,7 @@ for zone in zones:
             model, ensembles.loc[zone], observations.loc[zone], zone
         )
 
-marginal_quantiles.to_pickle(PATH / "Data" / f"marginal_quantiles.pkl")
+marginal_quantiles.to_pickle(PATH / "Data" / "marginal_quantiles.pkl")
 
 # %% pesudo residuals
 pseudoresid = pd.Series(index=pd_index, dtype=np.float64)
@@ -328,7 +328,7 @@ for zone in zones:
         )
         pseudoresid.loc[zone, name] = tmp
 
-pseudoresid.to_pickle(PATH / "Data" / f"pseudoresidual.pkl")
+pseudoresid.to_pickle(PATH / "Data" / "pseudoresidual.pkl")
 
 # %% arima estimation and simulation
 
@@ -378,8 +378,8 @@ if TRAINAR:
         keys=zones,
     )
 
-simulations_normal.to_pickle(PATH / "Data" / f"simulation_normal.pkl")
-simulations_normal.to_pickle(PATH / "Data" / f"corrolation_parameters.pkl")
+simulations_normal.to_pickle(PATH / "Data" / "simulation_normal.pkl")
+simulations_normal.to_pickle(PATH / "Data" / "corrolation_parameters.pkl")
 
 # %% original space
 
@@ -396,7 +396,7 @@ for zone in zones:
             marginal_quantiles.loc[zone, name].values,
         )
 
-simulations.to_pickle(PATH / "Data" / f"simulation.pkl")
+simulations.to_pickle(PATH / "Data" / "simulation.pkl")
 
 # %% scores
 
@@ -441,8 +441,8 @@ for zone in zones:
     scores.loc[zone, "Ensembles"] = tmp
 
 # add geometric mean scores
-scores["Geometric Mean Score"] = np.exp(np.log(scores).mean(axis=1))
+scores["Geometric Mean"] = np.exp(np.log(scores).mean(axis=1))
 scores_percent = scores.divide(scores.xs("Ensembles", level=1), level=0)
 
-scores.to_pickle(PATH / "Data" / f"scores.pkl")
-scores_percent.to_pickle(PATH / "Data" / f"scores.pkl")
+scores.to_pickle(PATH / "Data" / "scores.pkl")
+scores_percent.to_pickle(PATH / "Data" / "scores_percent.pkl")
