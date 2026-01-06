@@ -219,14 +219,12 @@ fig.savefig(PATH / "Results" / "Graphs" / "corrolation_example.pdf")
 # %% Scores
 
 scores = pd.read_pickle(PATH / "Data" / "scores.pkl")
-scores.stack().unstack(level=1).style.format(precision=2).to_latex(
+scores.style.format(precision=2).to_latex(
     PATH / "Results" / "Tables" / "scores.tex", hrules=True, clines="all;data"
 )
 
 scores_percent = pd.read_pickle(PATH / "Data" / "scores_percent.pkl")
-scores_percent.stack().unstack(level=1).drop("Ensembles", axis=1).style.format(
-    precision=2
-).to_latex(
+scores_percent.style.format(precision=2).to_latex(
     PATH / "Results" / "Tables" / "scores_percent.tex",
     hrules=True,
     clines="all;data",

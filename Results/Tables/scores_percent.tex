@@ -1,46 +1,46 @@
-\begin{tabular}{llrrrr}
+\begin{tabular}{llrrrrr}
 \toprule
- &  & Latent & Latent - Marginal & Simple & Simple - Marginal \\
+ &  & MAE & RMSE & CRPS & VarS & Geometric Mean Score \\
 \midrule
-\multirow[c]{5}{*}{DK1-offshore} & MAE & 0.86 & 0.86 & 0.84 & 0.84 \\
-\cline{2-6}
- & RMSE & 0.91 & 0.91 & 0.89 & 0.89 \\
-\cline{2-6}
- & CRPS & 0.81 & 0.81 & 0.80 & 0.81 \\
-\cline{2-6}
- & VarS & 0.89 & 1.08 & 0.89 & 1.13 \\
-\cline{2-6}
- & Geometric Mean Score & 0.87 & 0.91 & 0.86 & 0.91 \\
-\cline{1-6} \cline{2-6}
-\multirow[c]{5}{*}{DK1-onshore} & MAE & 0.95 & 0.95 & 1.05 & 1.05 \\
-\cline{2-6}
- & RMSE & 0.98 & 0.98 & 1.07 & 1.07 \\
-\cline{2-6}
- & CRPS & 0.95 & 0.95 & 1.08 & 1.07 \\
-\cline{2-6}
- & VarS & 0.99 & 1.37 & 1.44 & 1.83 \\
-\cline{2-6}
- & Geometric Mean Score & 0.97 & 1.05 & 1.15 & 1.22 \\
-\cline{1-6} \cline{2-6}
-\multirow[c]{5}{*}{DK2-offshore} & MAE & 0.79 & 0.79 & 0.89 & 0.89 \\
-\cline{2-6}
- & RMSE & 0.76 & 0.76 & 0.86 & 0.86 \\
-\cline{2-6}
- & CRPS & 0.71 & 0.71 & 0.80 & 0.80 \\
-\cline{2-6}
- & VarS & 0.99 & 1.39 & 1.04 & 1.49 \\
-\cline{2-6}
- & Geometric Mean Score & 0.80 & 0.88 & 0.89 & 0.98 \\
-\cline{1-6} \cline{2-6}
-\multirow[c]{5}{*}{DK2-onshore} & MAE & 0.48 & 0.48 & 0.46 & 0.46 \\
-\cline{2-6}
- & RMSE & 0.50 & 0.50 & 0.47 & 0.47 \\
-\cline{2-6}
- & CRPS & 0.45 & 0.45 & 0.45 & 0.45 \\
-\cline{2-6}
- & VarS & 0.80 & 1.04 & 0.81 & 1.17 \\
-\cline{2-6}
- & Geometric Mean Score & 0.54 & 0.58 & 0.53 & 0.58 \\
-\cline{1-6} \cline{2-6}
+\multirow[c]{5}{*}{DK1-onshore} & Ensembles & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 \\
+\cline{2-7}
+ & Simple - Marginal & 1.05 & 1.07 & 1.07 & 1.83 & 1.22 \\
+\cline{2-7}
+ & Latent - Marginal & 0.95 & 0.98 & 0.95 & 1.37 & 1.05 \\
+\cline{2-7}
+ & Simple & 1.05 & 1.07 & 1.08 & 1.44 & 1.15 \\
+\cline{2-7}
+ & Latent & 0.95 & 0.98 & 0.95 & 0.99 & 0.97 \\
+\cline{1-7} \cline{2-7}
+\multirow[c]{5}{*}{DK2-onshore} & Ensembles & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 \\
+\cline{2-7}
+ & Simple - Marginal & 0.46 & 0.47 & 0.45 & 1.17 & 0.58 \\
+\cline{2-7}
+ & Latent - Marginal & 0.48 & 0.50 & 0.45 & 1.04 & 0.58 \\
+\cline{2-7}
+ & Simple & 0.46 & 0.47 & 0.45 & 0.81 & 0.53 \\
+\cline{2-7}
+ & Latent & 0.48 & 0.50 & 0.45 & 0.80 & 0.54 \\
+\cline{1-7} \cline{2-7}
+\multirow[c]{5}{*}{DK1-offshore} & Ensembles & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 \\
+\cline{2-7}
+ & Simple - Marginal & 0.84 & 0.89 & 0.81 & 1.13 & 0.91 \\
+\cline{2-7}
+ & Latent - Marginal & 0.86 & 0.91 & 0.81 & 1.08 & 0.91 \\
+\cline{2-7}
+ & Simple & 0.84 & 0.89 & 0.80 & 0.89 & 0.86 \\
+\cline{2-7}
+ & Latent & 0.86 & 0.91 & 0.81 & 0.89 & 0.87 \\
+\cline{1-7} \cline{2-7}
+\multirow[c]{5}{*}{DK2-offshore} & Ensembles & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 \\
+\cline{2-7}
+ & Simple - Marginal & 0.89 & 0.86 & 0.80 & 1.49 & 0.98 \\
+\cline{2-7}
+ & Latent - Marginal & 0.79 & 0.76 & 0.71 & 1.39 & 0.88 \\
+\cline{2-7}
+ & Simple & 0.89 & 0.86 & 0.80 & 1.04 & 0.89 \\
+\cline{2-7}
+ & Latent & 0.79 & 0.76 & 0.71 & 0.99 & 0.80 \\
+\cline{1-7} \cline{2-7}
 \bottomrule
 \end{tabular}
