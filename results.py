@@ -3,17 +3,19 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.stats as stats
+import statsmodels.api as sm
 
 from pathlib import Path
 
+idx = pd.IndexSlice
 PATH = Path("C:/Users/kpfs/Projects/Correlation-structure-article")
 
 zones = ["DK1-onshore", "DK2-onshore", "DK1-offshore", "DK2-offshore"]
 example_date = pd.to_datetime(["2023-07-01", "2023-07-14"], utc=True)
 
 # %% raw data
-ens = pd.read_pickle(PATH / "Data" / "ensembles.pkl")
-obs = pd.read_pickle(PATH / "Data" / "observations.pkl")
+ens = pd.read_pickle(PATH / "Data" / "Real" / "ensembles.pkl")
+obs = pd.read_pickle(PATH / "Data" / "Real" / "observations.pkl")
 
 
 fig, axes = plt.subplots(2, 2, sharex=True, figsize=(8, 6), squeeze=True)
@@ -44,10 +46,16 @@ fig.savefig(PATH / "Results" / "Graphs" / "data_example.pdf")
 # %% data summary
 
 tmp = obs.unstack(level=0).describe().drop("count")
-tmp.style.format(precision=2).to_latex(
+tmp.style.format(precision=2).format_index(escape="latex").to_latex(
     PATH / "Results" / "Tables" / "observations_summary.tex",
     position="htb",
     hrules=True,
+    caption=(
+        "Summary Statistics for the observed power productions",
+        "Observation summary",
+    ),
+    label="tab:observation",
+    position_float="centering",
 )
 
 tmp = (
@@ -56,15 +64,21 @@ tmp = (
     .describe()
     .drop("count")
 )
-tmp.style.format(precision=2).to_latex(
+tmp.style.format(precision=2).format_index(escape="latex").to_latex(
     PATH / "Results" / "Tables" / "ensembles_summary.tex",
     position="htb",
     hrules=True,
+    caption=(
+        "Summary Statistics for the Ensembles",
+        "Ensemble summary",
+    ),
+    label="tab:ensemble",
+    position_float="centering",
 )
 
 # %% training loss
 
-train = pd.read_pickle(PATH / "Data" / "modeltraining.pkl")
+train = pd.read_pickle(PATH / "Data" / "Real" / "modeltraining.pkl")
 
 fig, axes = plt.subplots(2, 2, figsize=(8, 6), squeeze=True)
 axes = axes.ravel()
@@ -95,7 +109,7 @@ fig.savefig(PATH / "Results" / "Graphs" / "loss_curves.pdf")
 
 # %% Marginal models
 
-marginal_quantiles = pd.read_pickle(PATH / "Data" / "marginal_quantiles.pkl")
+marginal_quantiles = pd.read_pickle(PATH / "Data" / "Real" / "marginal_quantiles.pkl")
 
 fig, axes = plt.subplots(2, 2, sharex=True, figsize=(8, 6), squeeze=True)
 axes = axes.ravel()
@@ -130,8 +144,8 @@ fig.savefig(PATH / "Results" / "Graphs" / "marginal_example.pdf")
 
 # %% pseudo residual
 
-marginal_quantiles = pd.read_pickle(PATH / "Data" / "marginal_quantiles.pkl")
-pseudo = pd.read_pickle(PATH / "Data" / "pseudoresidual.pkl")
+marginal_quantiles = pd.read_pickle(PATH / "Data" / "Real" / "marginal_quantiles.pkl")
+pseudo = pd.read_pickle(PATH / "Data" / "Real" / "pseudoresidual.pkl")
 
 fig, ax = plt.subplots(figsize=(8, 6))
 
@@ -148,7 +162,7 @@ for i in range(1, len(marginal_quantiles.columns) // 2):
 # Observations
 ax.scatter(pr.index, pr, s=3, color="black", label="Actual production")
 
-ax.set_title(zone)
+ax.set_title("DK1-onshore")
 ax.set_xlabel("Date")
 ax.set_ylabel("MWh")
 ax.tick_params(axis="x", labelrotation=20)
@@ -157,11 +171,12 @@ ax.set_xlim(*example_date)
 fig.set_layout_engine("constrained")
 fig.savefig(PATH / "Results" / "Graphs" / "pseudoresidual.pdf")
 
+
 # %% arima params
 
 params = pd.DataFrame(
     columns=pd.MultiIndex.from_product([zones, ["Latent", "Simple"]]),
-    index=["ar1", "ma1", "AR1", "sigma"],
+    index=[r"\theta_1", r"\phi_1", r"\Theta_1", r"\sigma^2"],
     dtype=np.float64,
 )
 for f in (PATH / "Models" / "sarima").glob("*"):
@@ -176,19 +191,49 @@ params.style.format(precision=2).to_latex(
     hrules=True,
     clines="all;data",
 )
+
+# %% acf and pacf plots
+pseudo = pd.read_pickle(PATH / "Data" / "Real" / "pseudoresidual.pkl")
+residuals = pd.read_pickle(PATH / "Data" / "Real" / "residuals_normal.pkl")
+
+width = 0.1
+nlags=48
+fig, axes = plt.subplots(2, 2, sharex=True, sharey=True, figsize=(8, 6), squeeze=True)
+for i, zone in enumerate(zones):
+    X = np.arange(49) + 0.25*(i - 2)
+    acf_before = sm.tsa.acf(pseudo.loc[zone, "Latent"], nlags=nlags)
+    pacf_before = sm.tsa.pacf(pseudo.loc[zone, "Latent"], nlags=nlags)
+
+    acf_after = sm.tsa.acf(residuals.loc[zone, "Latent"], nlags=nlags)
+    pacf_after = sm.tsa.pacf(residuals.loc[zone, "Latent"], nlags=nlags)
+
+    axes[0, 0].bar(X, acf_before, width=width, label=zone)
+    axes[0, 1].bar(X, pacf_before, width=width, label=zone)
+    axes[1, 0].bar(X, acf_after, width=width, label=zone)
+    axes[1, 1].bar(X, pacf_after, width=width, label=zone)
+
+fig.supxlabel("Lag")
+axes[0,0].set_title("ACF")
+axes[0,1].set_title("PACF")
+
+axes[0,0].set_ylabel("Before")
+axes[1,0].set_ylabel("after")
+
+axes[0,1].legend()
+
+fig.set_layout_engine("constrained")
+
+fig.savefig(PATH / "Results" / "Graphs" / "acf_pacf.pdf")
+
+
 # %% Autocorrelation models
 
-sims = pd.read_pickle(PATH / "Data" / "simulation.pkl")
-sim_quants = pd.DataFrame(
-    np.quantile(sims, np.arange(0, 1.01, 0.05), axis=1).T,
-    index=sims.index,
-    columns=[f"{x:.2f}" for x in np.arange(0, 1.01, 0.05)],
-)
+sims = pd.read_pickle(PATH / "Data" / "Real" / "simulations_plot.pkl")
 
 fig, axes = plt.subplots(2, 2, sharex=True, figsize=(8, 6), squeeze=True)
 axes = axes.ravel()
 for i, zone in enumerate(zones):
-    q = sim_quants.loc[zone, "Latent"]
+    q = sims.loc[zone, "Latent"]
     x = q.index
 
     l = axes[i].plot(x, q["0.50"])
@@ -218,14 +263,85 @@ fig.savefig(PATH / "Results" / "Graphs" / "corrolation_example.pdf")
 
 # %% Scores
 
-scores = pd.read_pickle(PATH / "Data" / "scores.pkl")
-scores.style.format(precision=2).to_latex(
-    PATH / "Results" / "Tables" / "scores.tex", hrules=True, clines="all;data"
-)
+scores = pd.read_pickle(PATH / "Data" / "Real" / "scores.pkl")
+scores_percent = pd.read_pickle(PATH / "Data" / "Real" / "scores_percent.pkl")
 
-scores_percent = pd.read_pickle(PATH / "Data" / "scores_percent.pkl")
-scores_percent.style.format(precision=2).to_latex(
-    PATH / "Results" / "Tables" / "scores_percent.tex",
+is_ensemble = scores.index.get_level_values(1) == "Ensembles"
+combined = scores_percent.copy()
+combined.loc[is_ensemble] = scores.loc[is_ensemble]
+
+# --- Styling / LaTeX ---
+
+def pct_fmt(x):
+    # Handle NaNs gracefully for LaTeX
+    return f"{x * 100:.1f}\\%" if pd.notna(x) else ""
+
+def num_fmt(x):
+    return f"{x:.2f}" if pd.notna(x) else ""
+
+styler = (
+    combined.style
+    .format(num_fmt, subset=idx[is_ensemble, :], escape="latex")
+    .format(pct_fmt, subset=idx[~is_ensemble, :], escape="latex")
+    .highlight_between(
+        left=0, right=1, inclusive="neither",
+        subset=idx[~is_ensemble, :],
+        props="font-weight:bold;"
+    )
+)
+styler.to_latex(
+    PATH / "Results" / "Tables" / "scores.tex",
     hrules=True,
     clines="all;data",
+    position="htb",
+    caption=(
+        "Model Scores (Ensemble in Original Units; Other Models as Percent of Ensemble)",
+        "Ensemble summary",
+    ),
+    label="tab:ensemble_combined",
+    position_float="centering",
+    convert_css=True,
+)
+
+
+#%%
+
+scores = pd.read_pickle(PATH / "Data" / "Simulated" / "scores.pkl")
+scores_percent = pd.read_pickle(PATH / "Data" / "Simulated" / "scores_percent.pkl")
+
+is_ensemble = scores.index.get_level_values(1) == "Ensembles"
+combined = scores_percent.copy()
+combined.loc[is_ensemble] = scores.loc[is_ensemble]
+
+# --- Styling / LaTeX ---
+
+def pct_fmt(x):
+    # Handle NaNs gracefully for LaTeX
+    return f"{x * 100:.1f}\\%" if pd.notna(x) else ""
+
+def num_fmt(x):
+    return f"{x:.2f}" if pd.notna(x) else ""
+
+styler = (
+    combined.style
+    .format(num_fmt, subset=idx[is_ensemble, :], escape="latex")
+    .format(pct_fmt, subset=idx[~is_ensemble, :], escape="latex")
+    .highlight_between(
+        left=0, right=1, inclusive="neither",
+        subset=idx[~is_ensemble, :],
+        props="font-weight:bold;"
+    )
+)
+styler.to_latex(
+    PATH / "Results" / "Tables" / "scores_simulated.tex",
+    hrules=True,
+    clines="all;data",
+    position="htb",
+    caption=(
+        "Model Scores (Ensemble in Original Units; Other Models as Percent of Ensemble)",
+        "Ensemble summary",
+    ),
+    label="tab:ensemble_combined",
+    position_float="centering",
+    convert_css=True,
 )

@@ -6,3 +6,6 @@ Data/**
 aux_files/*
 %ignore the resulting pdf
 main.pdf
+
+% ignore pycharm files
+.idea/*

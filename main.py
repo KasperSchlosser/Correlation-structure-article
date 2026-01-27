@@ -15,12 +15,15 @@ from keras import ops
 # %% parameters
 PATH = Path("C:/Users/kpfs/Projects/Correlation-structure-article")
 
-# TRAINNN = True
+#data_type = "Real"
+data_type = "Simulated"
+
+#TRAINNN = True
 TRAINNN = False
 
 # True to retrain models, false to use previous models
-# TRAINAR = True
-TRAINAR = False
+TRAINAR = True
+#TRAINAR = False
 
 quantiles = np.arange(0.05, 1.01, 0.05)
 quantiles_str = [f"{x:.2f}" for x in quantiles]
@@ -36,10 +39,10 @@ nsim = 1000
 
 zones = ["DK1-onshore", "DK2-onshore", "DK1-offshore", "DK2-offshore"]
 zone_max = {
-    "DK1-onshore": 3600,
-    "DK2-onshore": 700,
-    "DK1-offshore": 1260,
-    "DK2-offshore": 1000,
+    "DK1-onshore": 3560,
+    "DK2-onshore": 690,
+    "DK1-offshore": 1370,
+    "DK2-offshore": 990,
 }
 
 models_configs = {
@@ -251,22 +254,36 @@ def params_to_pd(res):
         data=data[1:, 1:], index=data[1:, 0], columns=data[0, 1:]
     )[["coef", "std err"]]
 
-
 # %% load data
-observations = load_observations(
-    PATH / "Data" / "Raw Data" / "ProductionConsumptionSettlement.csv"
-)
-ensembles = load_ensembles(PATH / "Data" / "Raw Data" / "Ensembles")
-observations = observations.loc[ensembles.index]
 
-pd_index = pd.MultiIndex.from_product(
-    [zones, models_configs.keys(), observations.index.unique(1)]
-).sortlevel()[0]
+if data_type == "Real":
+    observations = load_observations(
+        PATH  / "Data" / data_type / "Raw Data" / "ProductionConsumptionSettlement.csv"
+    )
+    ensembles = load_ensembles(PATH  / "Data" / data_type / "Raw Data" / "Ensembles")
+    observations = observations.loc[ensembles.index]
 
-train_idx = observations.index.unique(1)
-test_idx = train_idx[int(len(train_idx) * train_size) :]
-train_idx = train_idx[: int(len(train_idx) * train_size)]
+    pd_index = pd.MultiIndex.from_product(
+        [zones, models_configs.keys(), observations.index.unique(1)]
+    ).sortlevel()[0]
 
+    train_idx = observations.index.unique(1)
+    test_idx = train_idx[int(len(train_idx) * train_size) :]
+    train_idx = train_idx[: int(len(train_idx) * train_size)]
+
+    ensembles.to_pickle(PATH  / "Data" / data_type / "ensembles.pkl")
+    observations.to_pickle(PATH  / "Data" / data_type / "observations.pkl")
+else:
+    ensembles = pd.read_pickle(PATH / "Data" / data_type / "ensembles.pkl")
+    observations = pd.read_pickle(PATH / "Data" / data_type / "observations.pkl")
+
+    pd_index = pd.MultiIndex.from_product(
+        [zones, models_configs.keys(), observations.index.unique(1)]
+    ).sortlevel()[0]
+
+    train_idx = observations.index.unique(1)
+    test_idx = train_idx[int(len(train_idx) * train_size) :]
+    train_idx = train_idx[: int(len(train_idx) * train_size)]
 
 # %%
 models = {zone: {} for zone in zones}
@@ -294,13 +311,13 @@ if TRAINNN:
             model, hist = train_model(ens_vals, obs_vals, config, loss)
 
             models[zone][name] = model
-            model.save(PATH / "Models" / "nn" / f"{zone}_{name}.keras")
+            model.save(PATH  / "Models" / data_type / "nn" / f"{zone}_{name}.keras")
             history.loc[zone, name, hist.epoch] = np.array(
                 list(hist.history.values())
             ).T
-    history.to_pickle(PATH / "Data" / "modeltraining.pkl")
+    history.to_pickle(PATH  / "Data" / data_type / "modeltraining.pkl")
 else:
-    for file in (PATH / "Models" / "nn").glob("*keras"):
+    for file in (PATH  / "Models" / data_type / "nn").glob("*keras"):
         zone, name = file.stem.split("_")
         models[zone][name] = keras.saving.load_model(file, compile=False)
 
@@ -316,7 +333,7 @@ for zone in zones:
             model, ensembles.loc[zone], observations.loc[zone], zone
         )
 
-marginal_quantiles.to_pickle(PATH / "Data" / "marginal_quantiles.pkl")
+marginal_quantiles.to_pickle(PATH  / "Data" / data_type / "marginal_quantiles.pkl")
 
 # %% pesudo residuals
 pseudoresid = pd.Series(index=pd_index, dtype=np.float64)
@@ -328,7 +345,7 @@ for zone in zones:
         )
         pseudoresid.loc[zone, name] = tmp
 
-pseudoresid.to_pickle(PATH / "Data" / "pseudoresidual.pkl")
+pseudoresid.to_pickle(PATH  / "Data" / data_type / "pseudoresidual.pkl")
 
 # %% arima estimation and simulation
 
@@ -337,6 +354,7 @@ simulations_normal = pd.DataFrame(
     columns=[f"Simulation {x}" for x in range(1, nsim + 1)],
     dtype=np.float64,
 )
+residuals_normal = pd.Series(index=pd_index, dtype=np.float64)
 
 parameters = {zone: {} for zone in zones}
 
@@ -344,7 +362,7 @@ for zone in zones:
     for name in models_configs.keys():
         print(f"{zone}-{name}")
 
-        p = PATH / "Models" / "sarima" / f"{zone}_{name}.npy"
+        p = PATH  / "Models" / data_type / "sarima" / f"{zone}_{name}.npy"
         if TRAINAR:
             model = sm.tsa.SARIMAX(
                 pseudoresid.loc[zone, name, train_idx].values,
@@ -354,7 +372,11 @@ for zone in zones:
 
             parameters[zone][name] = params_to_pd(model)
             params = model.params
+
             np.save(p, params)
+
+            model = model.apply(pseudoresid.loc[zone, name].values, refit = False)
+            residuals_normal.loc[zone,name] = model.resid
 
         else:
             params = np.load(p)
@@ -377,9 +399,11 @@ if TRAINAR:
         ],
         keys=zones,
     )
+    parameters.to_pickle(PATH  / "Data" / data_type / "corrolation_parameters.pkl")
+    residuals_normal.to_pickle(PATH  / "Data" / data_type / "residuals_normal.pkl")
 
-simulations_normal.to_pickle(PATH / "Data" / "simulation_normal.pkl")
-simulations_normal.to_pickle(PATH / "Data" / "corrolation_parameters.pkl")
+simulations_normal.to_pickle(PATH  / "Data" / data_type / "simulation_normal.pkl")
+
 
 # %% original space
 
@@ -388,6 +412,14 @@ simulations = pd.DataFrame(
     columns=[f"Simulation {x}" for x in range(1, nsim + 1)],
     dtype=np.float64,
 )
+
+#for plotting take quantiles over last 2400 observations,
+simulations_plot = pd.DataFrame(
+    index=pd_index,
+    columns=quantiles_str,
+    dtype=np.float64,
+)
+
 for zone in zones:
     for name in models_configs.keys():
         print(f"{zone}-{name}")
@@ -396,7 +428,14 @@ for zone in zones:
             marginal_quantiles.loc[zone, name].values,
         )
 
-simulations.to_pickle(PATH / "Data" / "simulation.pkl")
+        tmp = np.quantile(simulations_normal.loc[zone,name].iloc[-2400:], quantiles)
+        tmp = np.broadcast_to(tmp, (simulations_normal.loc[zone,name].shape[0], len(tmp)))
+        simulations_plot.loc[zone, name] = transform2orig(
+            tmp,
+            marginal_quantiles.loc[zone, name].values,
+        )
+simulations.to_pickle(PATH  / "Data" / data_type / "simulation.pkl")
+simulations_plot.iloc[:,:-1].to_pickle(PATH  / "Data" / data_type / "simulations_plot.pkl")
 
 # %% scores
 
@@ -440,9 +479,8 @@ for zone in zones:
     )
     scores.loc[zone, "Ensembles"] = tmp
 
-# add geometric mean scores
-scores["Geometric Mean"] = np.exp(np.log(scores).mean(axis=1))
 scores_percent = scores.divide(scores.xs("Ensembles", level=1), level=0)
 
-scores.to_pickle(PATH / "Data" / "scores.pkl")
-scores_percent.to_pickle(PATH / "Data" / "scores_percent.pkl")
+scores.to_pickle(PATH  / "Data" / data_type / "scores.pkl")
+scores_percent.to_pickle(PATH  / "Data" / data_type / "scores_percent.pkl")
+
