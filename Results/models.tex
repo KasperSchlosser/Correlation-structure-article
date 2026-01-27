@@ -1,0 +1,72 @@
+\begin{figure}[t]
+\centering
+
+% ---------- Style definitions ----------
+\tikzset{
+  >=Latex,
+  box/.style={draw, rounded corners, thick, align=center, inner sep=4pt, minimum width=38mm, minimum height=9mm, fill=orange!10},
+  seq/.style={draw, rounded corners, thick, align=center, inner sep=4pt, minimum width=44mm, minimum height=10mm, fill=purple!10},
+  head/.style={draw, rounded corners, thick, align=center, inner sep=4pt, minimum width=38mm, minimum height=9mm, fill=blue!8},
+  outnode/.style={draw, circle, thick, minimum size=4mm, inner sep=1pt, fill=green!10},
+  note/.style={font=\small, align=center}
+}
+
+% ---------- Simple model ----------
+\begin{minipage}{0.47\linewidth}
+\centering
+\textbf{Simple model}
+
+\begin{tikzpicture}[node distance=6mm and 10mm]
+  % Nodes
+  \node[box] (inpS) {Sequence input $(T \times d_x)$};
+  \node[head, below=of inpS] (denseS) {Dense ($1$) \\ Activation: Identity};
+
+  % Quantile head (three example outputs + ellipsis)
+  \node[outnode, below left=7mm and -8mm of denseS] (q1) {$q_{\alpha_1}$};
+  \node[below=7mm of denseS] (qdots) {$\cdots$};
+  \node[outnode, below right=7mm and -8mm of denseS] (qm) {$q_{\alpha_m}$};
+  \node[note, below=3mm of qdots] (noteS) {Outputs: $m$ quantiles $\{\alpha_i\}$};
+
+  % Arrows
+  \draw[->, thick] (inpS) -- (denseS);
+  \draw[->, thick] (denseS) -- (q1);
+  \draw[->, thick] (denseS) -- (qm);
+\end{tikzpicture}
+\end{minipage}
+\hfill
+% ---------- Latent LSTM model ----------
+\begin{minipage}{0.47\linewidth}
+\centering
+\textbf{Latent LSTM model}
+
+\begin{tikzpicture}[node distance=6mm and 10mm]
+  % Nodes
+  \node[box] (inpL) {Sequence input $(d_t \time d_x)$};
+  \node[seq, below=of inpL] (proj1) {Dense \\ Width: $h$ \quad Act: SELU};
+  \node[seq, below=of proj1] (proj2) {Dense \\ Width: $h$ \quad Act: SELU};
+  \node[seq, below=of proj2] (lstm) {LSTM \quad Hidden: $h$};
+  \node[head, below=of lstm] (headL) {Dense ($h$) \\ Activation: SELU};
+  \node[head, below=of headL] (outL) {Dense ($h$) \\ Activation: Identity};
+
+
+  % Quantile head (three example outputs + ellipsis)
+  \node[outnode, below left=7mm and -8mm of outL] (q1L) {$q_{\alpha_1}$};
+  \node[below=7mm of outL] (qdotsL) {$\cdots$};
+  \node[outnode, below right=7mm and -8mm of outL] (qmL) {$q_{\alpha_m}$};
+  \node[note, below=3mm of qdotsL] (noteS) {Outputs: $m$ quantiles $\{\alpha_i\}$};
+
+  % Arrows
+  \draw[->, thick] (inpL) -- (proj1);
+  \draw[->, thick] (proj1) -- (proj2);
+  \draw[->, thick] (proj2) -- (lstm);
+  \draw[->, thick] (lstm) -- (headL);
+  \draw[->, thick] (headL) -- (outL);
+  \draw[->, thick] (outL) -- (q1L);
+  \draw[->, thick] (outL) -- (qdotsL);
+  \draw[->, thick] (outL) -- (qmL);
+\end{tikzpicture}
+\end{minipage}
+
+\caption{Illustrations of the two neural network architectures. Left: a Simple model with a linear (Identity) output head producing $m$ quantile levels $\{\alpha_i\}$. Right: a Latent model with two SELU-activated projections applied per time step, followed by an LSTM encoder, a SELU head, and an Identity output to $m$ quantiles. Symbols: $T$ sequence length, $d_x$ input feature dimension, $d_\ell$ latent width, $h$ LSTM hidden size, $m$ number of quantiles.}
+\label{fig:nn_architectures}
+\end{figure}

@@ -1,46 +1,51 @@
-\begin{tabular}{llrrrrr}
+\begin{table}[htb]
+\centering
+\caption[Ensemble summary]{Model Scores (Ensemble in Original Units; Other Models as Percent of Ensemble)}
+\label{tab:ensemble_combined}
+\begin{tabular}{llrrrr}
 \toprule
- &  & MAE & RMSE & CRPS & VarS & Geometric Mean Score \\
+ &  & MAE & RMSE & CRPS & VarS \\
 \midrule
-\multirow[c]{5}{*}{DK1-onshore} & Ensembles & 192.07 & 263.32 & 138.56 & 36.60 & 126.55 \\
-\cline{2-7}
- & Simple - Marginal & 201.67 & 282.17 & 148.53 & 66.92 & 154.22 \\
-\cline{2-7}
- & Latent - Marginal & 181.89 & 259.08 & 132.11 & 49.99 & 132.82 \\
-\cline{2-7}
- & Simple & 201.67 & 282.17 & 149.22 & 52.55 & 145.34 \\
-\cline{2-7}
- & Latent & 181.74 & 258.65 & 131.14 & 36.38 & 122.38 \\
-\cline{1-7} \cline{2-7}
-\multirow[c]{5}{*}{DK2-onshore} & Ensembles & 82.52 & 112.76 & 63.68 & 10.30 & 49.71 \\
-\cline{2-7}
- & Simple - Marginal & 38.23 & 52.88 & 28.63 & 12.07 & 28.91 \\
-\cline{2-7}
- & Latent - Marginal & 39.86 & 55.96 & 28.76 & 10.75 & 28.82 \\
-\cline{2-7}
- & Simple & 38.26 & 52.92 & 28.36 & 8.33 & 26.30 \\
-\cline{2-7}
- & Latent & 39.85 & 55.90 & 28.68 & 8.27 & 26.96 \\
-\cline{1-7} \cline{2-7}
-\multirow[c]{5}{*}{DK1-offshore} & Ensembles & 138.74 & 193.46 & 107.67 & 29.65 & 96.21 \\
-\cline{2-7}
- & Simple - Marginal & 116.64 & 171.69 & 86.69 & 33.44 & 87.29 \\
-\cline{2-7}
- & Latent - Marginal & 119.00 & 176.20 & 86.80 & 31.90 & 87.29 \\
-\cline{2-7}
- & Simple & 116.75 & 171.69 & 86.52 & 26.50 & 82.33 \\
-\cline{2-7}
- & Latent & 118.90 & 176.06 & 87.09 & 26.36 & 83.26 \\
-\cline{1-7} \cline{2-7}
-\multirow[c]{5}{*}{DK2-offshore} & Ensembles & 158.55 & 239.70 & 124.22 & 30.68 & 109.71 \\
-\cline{2-7}
- & Simple - Marginal & 141.39 & 206.89 & 99.26 & 45.57 & 107.25 \\
-\cline{2-7}
- & Latent - Marginal & 124.46 & 181.03 & 88.70 & 42.55 & 96.03 \\
-\cline{2-7}
- & Simple & 141.50 & 206.90 & 99.16 & 31.94 & 98.13 \\
-\cline{2-7}
- & Latent & 124.73 & 181.04 & 88.32 & 30.49 & 88.31 \\
-\cline{1-7} \cline{2-7}
+\multirow[c]{5}{*}{DK1-onshore} & Ensembles & 192.07 & 263.32 & 138.56 & 36.60 \\
+\cline{2-6}
+ & Simple - Marginal & 107.7\% & 109.8\% & 108.4\% & 179.6\% \\
+\cline{2-6}
+ & Latent - Marginal & \bfseries 95.7\% & \bfseries 99.3\% & \bfseries 96.2\% & 135.1\% \\
+\cline{2-6}
+ & Simple & 107.7\% & 109.8\% & 108.8\% & 139.9\% \\
+\cline{2-6}
+ & Latent & \bfseries 95.8\% & \bfseries 99.4\% & \bfseries 95.8\% & \bfseries 99.4\% \\
+\cline{1-6} \cline{2-6}
+\multirow[c]{5}{*}{DK2-onshore} & Ensembles & 82.52 & 112.76 & 63.68 & 10.30 \\
+\cline{2-6}
+ & Simple - Marginal & \bfseries 46.8\% & \bfseries 47.3\% & \bfseries 45.4\% & 115.0\% \\
+\cline{2-6}
+ & Latent - Marginal & \bfseries 48.9\% & \bfseries 50.0\% & \bfseries 45.6\% & 102.9\% \\
+\cline{2-6}
+ & Simple & \bfseries 46.8\% & \bfseries 47.3\% & \bfseries 45.0\% & \bfseries 80.1\% \\
+\cline{2-6}
+ & Latent & \bfseries 48.9\% & \bfseries 50.0\% & \bfseries 45.6\% & \bfseries 80.0\% \\
+\cline{1-6} \cline{2-6}
+\multirow[c]{5}{*}{DK1-offshore} & Ensembles & 138.74 & 193.46 & 107.67 & 29.65 \\
+\cline{2-6}
+ & Simple - Marginal & \bfseries 98.0\% & 103.0\% & \bfseries 91.1\% & 121.6\% \\
+\cline{2-6}
+ & Latent - Marginal & \bfseries 99.4\% & 104.7\% & \bfseries 90.0\% & 115.2\% \\
+\cline{2-6}
+ & Simple & \bfseries 97.9\% & 102.9\% & \bfseries 91.7\% & \bfseries 88.6\% \\
+\cline{2-6}
+ & Latent & \bfseries 99.5\% & 104.9\% & \bfseries 91.1\% & \bfseries 90.2\% \\
+\cline{1-6} \cline{2-6}
+\multirow[c]{5}{*}{DK2-offshore} & Ensembles & 158.55 & 239.70 & 124.22 & 30.68 \\
+\cline{2-6}
+ & Simple - Marginal & \bfseries 89.5\% & \bfseries 86.7\% & \bfseries 80.0\% & 146.9\% \\
+\cline{2-6}
+ & Latent - Marginal & \bfseries 78.8\% & \bfseries 75.7\% & \bfseries 71.8\% & 137.1\% \\
+\cline{2-6}
+ & Simple & \bfseries 89.5\% & \bfseries 86.7\% & \bfseries 80.0\% & 103.4\% \\
+\cline{2-6}
+ & Latent & \bfseries 78.9\% & \bfseries 75.8\% & \bfseries 71.6\% & \bfseries 99.8\% \\
+\cline{1-6} \cline{2-6}
 \bottomrule
 \end{tabular}
+\end{table}
