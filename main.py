@@ -32,7 +32,7 @@ seasonal_order = (1, 0, 0, 24)
 
 timesteps = torch.flip(torch.arange(48, dtype=torch.int64), (-1,))
 batch_size = 168
-train_size = 0.4673495518565941  # 1 year of test data
+train_size = 1-0.46735  # 1 year of test data
 
 epochs = 1000
 nsim = 1000

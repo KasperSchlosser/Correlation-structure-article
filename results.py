@@ -43,6 +43,12 @@ fig.set_layout_engine("constrained")
 
 fig.savefig(PATH / "Results" / "Graphs" / "data_example.pdf")
 
+train_size = 1-0.46735
+timepoints = obs.index.get_level_values(1).unique()
+print(f"Period:{timepoints.min()} {timepoints.max()} Total data: {len(timepoints)} hours")
+print(f"split at {train_size:.2%} -> {int(len(timepoints)*train_size)} hours train, {int(len(timepoints)*(1-train_size))} hours test")
+print(f"Train period: {timepoints.min()} to {timepoints[int(len(timepoints)*train_size)-1]}")
+
 # %% data summary
 
 tmp = obs.unstack(level=0).describe().drop("count")
@@ -179,7 +185,7 @@ params = pd.DataFrame(
     index=[r"\theta_1", r"\phi_1", r"\Theta_1", r"\sigma^2"],
     dtype=np.float64,
 )
-for f in (PATH / "Models" / "sarima").glob("*"):
+for f in (PATH / "Models" / "Real" / "sarima").glob("*"):
 
     zone, model = f.stem.split("_")
     data = np.load(f)
