@@ -81,44 +81,43 @@ Both models output 19 quantiles corresponding to levels:
 \[
 \alpha \in \{0.05, 0.10, \dots, 0.90, 0.95\}.
 \]
-Detailed specifications are provided in \cref{tab:architecture}.
 
-The motivation for these two models builds on the modular framework introduced by \citet{jorgensenSequentialMethodsError2025} (NABQR). The latent model aims to learn a compact representation of the input data for downstream tasks, while the simple model serves as a minimal baseline.
+The motivation for these two models builds on the modular framework introduced by \citet{jorgensenSequentialMethodsError2025} . The latent model aims to learn a compact representation of the input data for downstream tasks, while the simple model serves as a minimal baseline.
 
-\begin{table}[ht]
-\centering
-\caption{Architecture details. Left: Simple model. Right: Latent LSTM model.}
-\label{tab:arch_side_by_side}
-\begin{minipage}{0.47\linewidth}
-\centering
-\subcaption*{Simple model}
-\begin{tabular}{lll}
-\hline
-Layer & Type  & Activation \\
-\hline
-Output head & Dense ($m$) & Identity \\
-\hline
-\end{tabular}
-\end{minipage}\hfill
-\begin{minipage}{0.47\linewidth}
-\centering
-\subcaption*{Latent model}
-\begin{tabular}{llll}
-\hline
-Layer & Type & Width/Shape & Activation \\
-\hline
-Proj (1) & Dense & $d_\ell$ & SELU \\
-Proj (2) & Dense & $d_\ell$ & SELU \\
-Encoder  & LSTM  & $h$      & -- \\
-Head (1) & Dense & $h$      & SELU \\
-Output   & Dense & $m$      & Identity \\
-\hline
-\end{tabular}
-\end{minipage}
-\end{table}
+\insert{results/models}
 
+% \begin{table}[ht]
+% \centering
+% \caption{Architecture details. Left: Simple model. Right: Latent LSTM model.}
+% \label{tab:arch_side_by_side}
+% \begin{minipage}{0.47\linewidth}
+% \centering
+% \subcaption*{Simple model}
+% \begin{tabular}{lll}
+% \hline
+% Layer & Type  & Activation \\
+% \hline
+% Output head & Dense ($m$) & Identity \\
+% \hline
+% \end{tabular}
+% \end{minipage}\hfill
+% \begin{minipage}{0.47\linewidth}
+% \centering
+% \subcaption*{Latent model}
+% \begin{tabular}{llll}
+% \hline
+% Layer & Type & Width/Shape & Activation \\
+% \hline
+% Proj (1) & Dense & $d_\ell$ & SELU \\
+% Proj (2) & Dense & $d_\ell$ & SELU \\
+% Encoder  & LSTM  & $h$      & -- \\
+% Head (1) & Dense & $h$      & SELU \\
+% Output   & Dense & $m$      & Identity \\
+% \hline
+% \end{tabular}
+% \end{minipage}
+% \end{table}
 
-\input{Results/models}
 
 \paragraph{Training Details}
 Models are implemented in \texttt{Keras}, which provides a convenient interface for specification and training. Optimization uses the \textbf{ADAM} algorithm with default parameters:
@@ -126,10 +125,9 @@ Models are implemented in \texttt{Keras}, which provides a convenient interface 
 \beta_1 = 0.9,\ \beta_2 = 0.999,\ \epsilon = 10^{-7}.
 \]
 
-Model training was accomplished using Quantile Loss. Defined in \cref{methods:scores}.
+Model training was accomplished using Quantile Loss, see in \cref{methods:scores}.
 
 To prevent overfitting and reduce training time, we apply early stopping based on validation loss: training halts if no improvement occurs for 10 consecutive epochs.
-
 
 \subsection{Distribution Function - Linear Interpolation}
 

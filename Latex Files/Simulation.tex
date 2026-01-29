@@ -1,1 +1,39 @@
 \section{Simulation Study}
+\label{simulation}
+
+As the ensemble data described in \cref{case} cannot be published we instead provide a simulated exampel, with an identical framework.
+
+\subsection{The Data}
+
+The simulation data uses an identical set to the case data, 4 zones with different production capacity. The observational data is reused and thus identical to the case.
+
+To replace the ensambles we simulated en ornstein-uhlenbeck (OU) mean-reverting process
+
+\begin{equation}
+    dX = \kappa\big(\mu(t) - X\big)\,dt + \sigma\, dB_t, 
+    \qquad j = 1,\dots,n_{\mathrm{ensembles}}.
+\end{equation}
+
+The process was driven using the actual observations at each timepoint, scaled to the interval $\mu(t) = \frac{y_t}{c_{zone}}, \, c_{zone = \max y_t} $ Scaling was done simply to streamline the simulation code and allow parameters to be chosen independently of zones.
+
+Simulation was performed using a euler-maruyama scheme, with timesteps of $dt = 1$. afterwards simulated ensembles were scaled back to original scale. 
+\begin{equation}
+    X_t = X_{t-1} + \kappa(\mu_{t} - X_{t-1}) + \sigma\epsilon_t
+\end{equation}
+
+where $\epsilon_t \sim N(0,1)$ and IID.
+
+For this simulation study the parameters $\kappa = 0.33$ and $\sigma = 0.033$ was chosen.
+
+
+\subsection{Procedure}
+
+The procedure used to analise the simulation example is identical to the one used in \cref{case} for detail refer to this chapter.
+
+\input{Results/models}
+
+
+The final scores of running the method using simulated ensembles can be seen in \cref{tab_scores_simulated}
+
+
+\input{Results/Tables/scores_simulated}
