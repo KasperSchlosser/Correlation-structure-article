@@ -18,8 +18,8 @@ PATH = Path("C:/Users/kpfs/Projects/Correlation-structure-article")
 #data_type = "Real"
 data_type = "Simulated"
 
-#TRAINNN = True
-TRAINNN = False
+TRAINNN = True
+#TRAINNN = False
 
 # True to retrain models, false to use previous models
 TRAINAR = True

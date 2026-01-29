@@ -182,7 +182,7 @@ fig.savefig(PATH / "Results" / "Graphs" / "pseudoresidual.pdf")
 
 params = pd.DataFrame(
     columns=pd.MultiIndex.from_product([zones, ["Latent", "Simple"]]),
-    index=[r"\theta_1", r"\phi_1", r"\Theta_1", r"\sigma^2"],
+    index=[r"$\theta_1$", r"$\phi_1$", r"$\Theta_1$", r"$\sigma^2$"],
     dtype=np.float64,
 )
 for f in (PATH / "Models" / "Real" / "sarima").glob("*"):
