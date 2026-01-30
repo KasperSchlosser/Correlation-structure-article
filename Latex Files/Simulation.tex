@@ -30,10 +30,40 @@ For this simulation study the parameters $\kappa = 0.33$ and $\sigma = 0.033$ wa
 
 The procedure used to analise the simulation example is identical to the one used in \cref{case} for detail refer to this chapter.
 
-\input{Results/models}
+\subsection{results}
+
+An example of the forecast provided by the method can be seen in \cref{fig:forecastexample}. Where the correlation corrected forecast is provided. The period visualised is the same as in \cref{fig:casedata} for comparison purpose.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{Results/Graphs/corrolation_example_sim.pdf}
+    \caption{Caption}
+    \label{fig:forecastexample}
+\end{figure}
+
+The loss curves during the training of the neural nets can be seen in \cref{fig:loss}. Showing both the training and validation loss.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{Results/Graphs/loss_curves_sim.pdf}
+    \caption{Caption}
+    \label{fig:loss}
+\end{figure}
+
+To inform SARIMA model structure. The ACF and PACf for the pseudoresiduals are plotted in \cref{fig:acf_pacf} both before an after applying the correlation models.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{Results/Graphs/acf_pacf_sim.pdf}
+    \caption{Caption}
+    \label{fig:acf_pacf}
+\end{figure}
 
 
-The final scores of running the method using simulated ensembles can be seen in \cref{tab_scores_simulated}
+For the SARIMA models the estimated parameters are found in \cref{tab:parameters}. Where parameters estimated using both the simple- and latent model are presented.
 
+\input{Results/Tables/parameters_sim}
+
+The finally performance metrics for all zones and models are presented in \cref{tab:scores}. showing the raw ensemble scores, as well as model scores as a percentage of the ensemble scores.
 
 \input{Results/Tables/scores_simulated}
