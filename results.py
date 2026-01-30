@@ -166,7 +166,7 @@ def plot_pseudo_residual(data, kind: str):
 def parameters_table(kind: str):
     params = pd.DataFrame(
         columns=pd.MultiIndex.from_product([zones, ["Latent", "Simple"]]),
-        index=[r"$\\theta_1$", r"$\\phi_1$", r"$\\Theta_1$", r"$\\sigma^2$"],
+        index=[r"$\theta_1$", r"$\phi_1$", r"$\Theta_1$", r"$\sigma^2$"],
         dtype=np.float64,
     )
     for f in _models_dir(kind).glob("*"):
