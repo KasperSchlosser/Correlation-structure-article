@@ -1,1 +1,24 @@
 \section{Discussion}
+
+The first notable result can be seen qualitatively by comparing \cref{fig:casedata} and \cref{fig:forecastexample}. For the zones DK1-offshore and DK2-onshore The method clearly handles the misalignment present in ensemble forecasts.
+For DK2-onshore the method also handles the failure modes present in the ensemble data. The resulting intervals are however broad.
+
+Neither the original ensembles nor the correlation corrected forecast are able to predict the large abrupt drop in production around 2023-07-01. As the drop is most likely caused by curtailment, it is hard to predict without additional information. 
+
+The method appears to capture the correlation structure present in the data. in \cref{fig:acf_pacf}. The ACF and PACF plots indicate a large autocorrelation at lag 1, as well as a a seasonal AR component with seasonality of 24 lags for DK1- and DK2- onshore.
+
+The  ACF and PACF plots for the SARIMA-model residuals indicate that the models have captured the full correlation structure in the system, with 
+
+The fitted SARIMA parameters are similar across zones, with the exception of the seasonal AR parameter $\Theta_1$, as seen in \cref{tab:parameters}. For the latent model the AR parameter $\theta_1$ are almost identical across zones.
+
+Inspecting the loss curves, \cref{fig:loss} for the marginal models indicate that that system analysed system are in complex, require more complex models to describe. The architectures used in this article were not optimized, it is possible that improved architectures could improve performance further.
+
+Finally looking at the results for the case study \cref{tab:scores}.  We see that the method either dramatically improves or matches the scores of the ensembles. the only exception being in RMSE for DK1-offshore.
+
+The improvement in marginal scores seem to indicate that the neural-nets are able to utilize the information in the ensembles. The marginal models however do not preserve the correlation structure present in the ensembles, as seen by the worse VarS.
+
+The addition of the SARIMA models restores the the correlation structure as can be seen in the VarS, in all cases the method either improving on or at least matches the ensembles VarS score.
+
+In the simulation study the scores \cref{tab:scores_simulation} are in all cases lower compared to the case study, the simulated ensembles, being driven by the actual observation, provide more information 
+
+Taken together the result indicate that the proposed method provides a simple, flexible, and effective way of modelling correlation structure in time-series data. In cases studied here the method provided an imporvement over baseline of up to 55\% in marginal scores, and up to 19.9\& in Vars.

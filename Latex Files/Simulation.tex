@@ -1,69 +1,48 @@
 \section{Simulation Study}
 \label{simulation}
 
-As the ensemble data described in \cref{case} cannot be published we instead provide a simulated exampel, with an identical framework.
+As the ensemble data described in \cref{case} cannot be published we instead provide a simulated example, with an identical framework.
 
-\subsection{The Data}
+The observational data, data split, training methodology, etc. are kept identical with the case study, for details refer to \cref{case-data}. 
 
-The simulation data uses an identical set to the case data, 4 zones with different production capacity. The observational data is reused and thus identical to the case.
+The Only change is to replace the original, proprietary ensembles with simulated data.
 
-To replace the ensambles we simulated en ornstein-uhlenbeck (OU) mean-reverting process
+\subsection{Simulated ensembles}
 
-\begin{equation}
-    dX = \kappa\big(\mu(t) - X\big)\,dt + \sigma\, dB_t, 
-    \qquad j = 1,\dots,n_{\mathrm{ensembles}}.
-\end{equation}
+To replace the ensembles we simulated en Ornstein-Uhlenbeck (OU) mean-reverting process, augmented with a process driven heteroscedasticity.
 
-The process was driven using the actual observations at each timepoint, scaled to the interval $\mu(t) = \frac{y_t}{c_{zone}}, \, c_{zone = \max y_t} $ Scaling was done simply to streamline the simulation code and allow parameters to be chosen independently of zones.
+\begin{align}
+    dX &= \kappa\big(\mu(t) - X\big)\,dt + \sigma(t)\, dB_t. \\
+    d\sigma &= -\lambda \sigma dt + (1-\lambda)d\mu dt
+\end{align}
 
-Simulation was performed using a euler-maruyama scheme, with timesteps of $dt = 1$. afterwards simulated ensembles were scaled back to original scale. 
-\begin{equation}
-    X_t = X_{t-1} + \kappa(\mu_{t} - X_{t-1}) + \sigma\epsilon_t
-\end{equation}
+To drive the process The actual observed data was used for the mean process. To simplify and standardize the code, observations were scaled to the interval [0,1]:
+
+\begin{align}
+    \mu(t) &= \frac{y_t}{c_{zone}} \\
+    C_{zone} = \max y_i
+\end{align}
+
+Simulation was performed using a Euler-Maruyama scheme, with of $dt = 1$.
+
+\begin{align}
+    X_t &= X_{t-1} + \kappa(\mu_{t} - X_{t-1}) + \sigma_t\epsilon_t \\
+    \sigma_t &= \sigma_{t-1} (1 - \lambda) + (1-\lambda)d\mu
+\end{align}
 
 where $\epsilon_t \sim N(0,1)$ and IID.
 
-For this simulation study the parameters $\kappa = 0.33$ and $\sigma = 0.033$ was chosen.
+For this simulation study the parameters $\kappa = 0.1$ and $\lambda = 0.95$ was chosen.
 
+After simulation the simulated ensembles were clipped to the range [0,1] and the scaled back to original scale, to mimic the original ensembles.
 
-\subsection{Procedure}
+\begin{equation}
+    \tilde X_t = C_{zone} \min(0, \max(1, X_t)
+\end{equation}
 
-The procedure used to analise the simulation example is identical to the one used in \cref{case} for detail refer to this chapter.
+\subsection{Procedure \& Results}
 
-\subsection{results}
-
-An example of the forecast provided by the method can be seen in \cref{fig:forecastexample}. Where the correlation corrected forecast is provided. The period visualised is the same as in \cref{fig:casedata} for comparison purpose.
-
-\begin{figure}
-    \centering
-    \includegraphics[width=1\linewidth]{Results/Graphs/corrolation_example_sim.pdf}
-    \caption{Caption}
-    \label{fig:forecastexample}
-\end{figure}
-
-The loss curves during the training of the neural nets can be seen in \cref{fig:loss}. Showing both the training and validation loss.
-
-\begin{figure}
-    \centering
-    \includegraphics[width=1\linewidth]{Results/Graphs/loss_curves_sim.pdf}
-    \caption{Caption}
-    \label{fig:loss}
-\end{figure}
-
-To inform SARIMA model structure. The ACF and PACf for the pseudoresiduals are plotted in \cref{fig:acf_pacf} both before an after applying the correlation models.
-
-\begin{figure}
-    \centering
-    \includegraphics[width=1\linewidth]{Results/Graphs/acf_pacf_sim.pdf}
-    \caption{Caption}
-    \label{fig:acf_pacf}
-\end{figure}
-
-
-For the SARIMA models the estimated parameters are found in \cref{tab:parameters}. Where parameters estimated using both the simple- and latent model are presented.
-
-\input{Results/Tables/parameters_sim}
-
-The finally performance metrics for all zones and models are presented in \cref{tab:scores}. showing the raw ensemble scores, as well as model scores as a percentage of the ensemble scores.
+As mentioned the procedure used to analyse the simulation example is identical to the one used in \cref{case}, for details refer to this section. The simulated data also mimics the original case data, and the results are similar to the original case study. Most of the examples are therefore left out.
+The final scores for the method on the simulated dataset can be seen in \cref{tab:scores_sim}
 
 \input{Results/Tables/scores_simulated}

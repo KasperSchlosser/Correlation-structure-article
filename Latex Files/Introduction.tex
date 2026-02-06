@@ -1,1 +1,15 @@
 \section{Introduction}
+
+The global electricity system has undergone substantial changes over the past two decades. The liberalisation of electricity markets and the rapid expansion of renewable energy sources have significantly affected how power systems are operated and balanced \cite{castro2024a,europeancommission.directorategeneralforeconomicandfinancialaffairs.DevelopmentRenewableEnergy2023}. Renewable technologies such as wind and solar exhibit far higher volatility than conventional generation, increasing the difficulty of forecasting and planning power production \cite{castro2024a}. As the share of renewables continues to rise—accounting for approximately 45\% of electricity generation in the EU in 2023 \cite{europeancommission.directorategeneralforeconomicandfinancialaffairs.DevelopmentRenewableEnergy2023}—accurate forecasting becomes increasingly critical for reducing balancing costs and maintaining grid stability.
+
+Recent research efforts have focused on improving probabilistic forecasts of renewable power. Building on the work of \textcite{jorgensenRealTimeForecastingRenewable2024} and \textcite{jorgensenSequentialMethodsError2025}, methods such as Non-Adaptive Basis Quantile Regression (NABQR) have demonstrated substantial improvements in marginal forecast accuracy. These approaches rely solely on mathematical transformations and require no detailed knowledge of the underlying physical system. However, they provide only marginal distributions; the temporal correlation structure of forecast errors remains undetermined.
+
+The central question investigated in this work is therefore:
+
+\begin{quote}
+\emph{Can the correlation structure of a time-varying process be determined through the pseudo-residuals of a marginal forecast?}
+\end{quote}
+
+Answering this question requires both methodological and evaluative considerations. First, suitable scoring rules, including the Variogram Score, must be applied carefully to ensure that dependence structures are correctly assessed. Second, issues identified in prior implementations—particularly those related to basis construction—must be corrected to ensure consistent and interpretable results. Finally, since many forecasting methods output only a discrete set of quantiles, appropriate monotone interpolation techniques are required to obtain valid predictive distributions.
+
+This work aims to close the gap between accurate marginal forecasting and a complete representation of temporal dependence, thereby contributing to improved uncertainty modelling in renewable energy forecasting.
