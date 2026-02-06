@@ -12,18 +12,21 @@ from pathlib import Path
 from torch.utils.data import DataLoader, Dataset, random_split
 from keras import ops
 
+import time
+tic = time.time()
+
 # %% parameters
 PATH = Path("C:/Users/kpfs/Projects/Correlation-structure-article")
 
 #data_type = "Real"
 data_type = "Simulated"
 
-TRAINNN = True
-#TRAINNN = False
+#TRAINNN = True
+TRAINNN = False
 
 # True to retrain models, false to use previous models
-TRAINAR = True
-#TRAINAR = False
+#TRAINAR = True
+TRAINAR = False
 
 quantiles = np.arange(0.05, 1.01, 0.05)
 quantiles_str = [f"{x:.2f}" for x in quantiles]
@@ -484,3 +487,7 @@ scores_percent = scores.divide(scores.xs("Ensembles", level=1), level=0)
 scores.to_pickle(PATH  / "Data" / data_type / "scores.pkl")
 scores_percent.to_pickle(PATH  / "Data" / data_type / "scores_percent.pkl")
 
+#%% print timeing
+
+toc = time.time()
+print(f"Total time: {toc - tic:.2f} seconds")
